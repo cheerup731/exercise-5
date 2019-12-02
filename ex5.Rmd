@@ -1,0 +1,58 @@
+---
+title: "simulation"
+output: html_document
+author: An-Chiao Liu
+---
+```{r message=FALSE, warning=FALSE}
+library(MASS)
+library(ggplot2)
+set.seed(13)
+nsim <- 100
+n <- 300
+data <- matrix(data = NA, nrow = nsim, ncol = n)
+```
+
+Sample 100 samples from a standard normal distribution.
+```{r}
+for (i in 1:nsim) {
+  
+  data[i,] <- mvrnorm(n = n, mu = 0, Sigma = 1)
+  
+}
+
+data <- as.data.frame(data)
+```
+
+absolute bias
+standard error
+lower bound of the 95% confidence interval
+upper bound of the 95% confidence interval
+```{r}
+Mean <- apply(data, 1, FUN = mean)
+Bias <- Mean - 0
+SE <- 1/sqrt(n)
+Lower <-  Mean - qt(.975, n-1) * SE
+Upper <-  Mean + qt(.975, n-1) * SE
+```
+
+```{r}
+result <- cbind(Mean, Bias, SE, Lower,Upper)
+result <- as.data.frame(result)
+```
+
+Create a plot that demonstrates the following **“A replication of the procedure that generates a 95% confidence interval that is centered around the sample mean would cover the population value at least 95 out of 100 times”**
+```{r}
+limits <- aes(ymax = result$Upper, ymin = result$Lower)
+ggplot(result, aes(y = Mean, x=1:100)) + 
+  geom_hline(aes(yintercept = 0), color = "dark grey", size = 2) + 
+  geom_pointrange(limits) + 
+  xlab("Simulations 1-100") +
+  ylab("Means and 95% Confidence Intervals")
+```
+
+Present a table containing all simulated samples for which the resulting confidence interval does not contain the population value.
+```{r}
+uncover <- result[!(Lower < 0 & 0 < Upper),]
+uncover
+```
+
